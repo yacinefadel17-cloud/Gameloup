@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوغارو - لعبة الذئاب</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night: #0a0a14;
+    --deep: #10101e;
+    --moon: #e8d9b0;
+    --gold: #c9a84c;
+    --blood: #8b1a1a;
+    --wolf: #3d2b6e;
+    --fog: rgba(232,217,176,0.08);
+    --glow: #c9a84c55;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--night);
+    color: var(--moon);
+    font-family: 'Amiri', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Stars background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 15%, rgba(255,255,255,0.6), transparent),
+      radial-gradient(1px 1px at 80% 25%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1.5px 1.5px at 45% 8%, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 65% 40%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 10% 55%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1.5px 1.5px at 90% 70%, rgba(255,255,255,0.6), transparent),
+      radial-gradient(1px 1px at 30% 80%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 70% 90%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 55% 60%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(2px 2px at 5% 90%, rgba(255,255,255,0.4), transparent);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Moon glow */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 40px 0 30px;
+  }
+
+  .moon-icon {
+    font-size: 3rem;
+    display: block;
+    animation: moonFloat 4s ease-in-out infinite;
+    filter: drop-shadow(0 0 20px var(--gold));
+  }
+
+  @keyframes moonFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  h1 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    color: var(--gold);
+    text-shadow: 0 0 30px var(--glow), 0 0 60px rgba(201,168,76,0.2);
+    letter-spacing: 4px;
+    margin: 10px 0 5px;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    color: rgba(232,217,176,0.5);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+  }
+
+  /* Divider */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to var(--dir, right), transparent, var(--gold));
+  }
+  .divider::after { --dir: left; }
+  .divider span { color: var(--gold); font-size: 1.2rem; }
+
+  /* Panels */
+  .panel {
+    background: linear-gradient(135deg, rgba(16,16,30,0.95), rgba(61,43,110,0.15));
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(201,168,76,0.1);
+  }
+
+  .panel-title {
+    font-size: 1.3rem;
+    color: var(--gold);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Add player */
+  .add-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--moon);
+    font-family: 'Amiri', serif;
+    font-size: 1.05rem;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    text-align: right;
+  }
+  input[type="text"]::placeholder { color: rgba(232,217,176,0.3); }
+  input[type="text"]:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 12px rgba(201,168,76,0.2);
+  }
+
+  .btn {
+    padding: 12px 22px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Amiri', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: all 0.25s;
+    white-space: nowrap;
+  }
+
+  .btn-gold {
+    background: linear-gradient(135deg, var(--gold), #a07830);
+    color: var(--night);
+    box-shadow: 0 4px 15px rgba(201,168,76,0.3);
+  }
+  .btn-gold:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(201,168,76,0.5);
+  }
+
+  .btn-blood {
+    background: linear-gradient(135deg, var(--blood), #5a0f0f);
+    color: var(--moon);
+    box-shadow: 0 4px 15px rgba(139,26,26,0.3);
+    padding: 8px 14px;
+    font-size: 0.9rem;
+  }
+  .btn-blood:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(139,26,26,0.4);
+  }
+
+  .btn-wolf {
+    background: linear-gradient(135deg, #5a3ea0, #3d2b6e);
+    color: var(--moon);
+    box-shadow: 0 4px 15px rgba(90,62,160,0.3);
+  }
+  .btn-wolf:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(90,62,160,0.5);
+  }
+
+  .btn-wolf.big {
+    width: 100%;
+    padding: 18px;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    margin-top: 10px;
+  }
+
+  /* Players grid */
+  .players-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .player-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    transition: all 0.3s;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .player-card:hover { border-color: rgba(201,168,76,0.4); background: rgba(255,255,255,0.07); }
+
+  .player-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .delete-btn {
+    background: none;
+    border: none;
+    color: rgba(232,217,176,0.3);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: color 0.2s;
+    line-height: 1;
+  }
+  .delete-btn:hover { color: #e05555; }
+
+  .empty-msg {
+    color: rgba(232,217,176,0.3);
+    text-align: center;
+    padding: 20px;
+    font-size: 1rem;
+    font-style: italic;
+  }
+
+  /* Roles legend */
+  .roles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+  }
+
+  .role-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 8px;
+    border-radius: 10px;
+    border: 1px solid;
+    text-align: center;
+  }
+
+  .role-badge .icon { font-size: 1.6rem; }
+  .role-badge .name { font-size: 0.85rem; font-weight: 700; }
+  .role-badge .desc { font-size: 0.72rem; opacity: 0.6; }
+
+  /* Role colors */
+  .role-sv      { border-color: #3a7bd5; background: rgba(58,123,213,0.1); color: #7eb3ff; }
+  .role-shawafa { border-color: #9c4eda; background: rgba(156,78,218,0.1); color: #c98aff; }
+  .role-sahara  { border-color: #28a745; background: rgba(40,167,69,0.1);  color: #6fdb8a; }
+  .role-manific { border-color: var(--gold); background: rgba(201,168,76,0.1); color: var(--gold); }
+  .role-sayad   { border-color: #fd7e14; background: rgba(253,126,20,0.1); color: #ffa55a; }
+  .role-wolf    { border-color: #8b1a1a; background: rgba(139,26,26,0.15); color: #e05555; }
+  .role-bwolf   { border-color: #1a1a1a; background: rgba(60,0,0,0.3);    color: #aaa; border-style: dashed; }
+
+  /* Reveal modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+  }
+  .modal-overlay.hidden { display: none; }
+
+  .modal {
+    background: linear-gradient(135deg, #10101e, #1e1430);
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 16px;
+    padding: 36px 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(0,0,0,0.8), 0 0 30px rgba(201,168,76,0.1);
+    position: relative;
+  }
+
+  .modal-step { animation: fadeIn 0.4s ease; }
+
+  .modal-player-name {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--moon);
+    margin-bottom: 6px;
+  }
+
+  .modal-instruction {
+    color: rgba(232,217,176,0.5);
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+  }
+
+  .role-reveal-icon {
+    font-size: 4.5rem;
+    display: block;
+    margin-bottom: 12px;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    filter: drop-shadow(0 0 20px currentColor);
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+    to   { transform: scale(1) rotate(0); opacity: 1; }
+  }
+
+  .role-reveal-name {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .role-reveal-desc {
+    font-size: 0.9rem;
+    opacity: 0.65;
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  /* Waiting cover */
+  .waiting-cover {
+    background: rgba(0,0,0,0.92);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 12px;
+    padding: 30px 20px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .waiting-cover:hover { background: rgba(20,10,40,0.9); }
+  .waiting-cover p { color: rgba(232,217,176,0.6); font-size: 0.95rem; }
+  .waiting-cover .tap-hint { font-size: 2rem; display: block; margin-bottom: 10px; }
+
+  /* Count badge */
+  .count-badge {
+    background: rgba(201,168,76,0.15);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.85rem;
+    color: var(--gold);
+    margin-right: 10px;
+  }
+
+  .panel-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  /* Progress */
+  .reveal-progress {
+    font-size: 0.85rem;
+    color: rgba(232,217,176,0.4);
+    margin-bottom: 16px;
+  }
+
+  .btn-close-modal {
+    position: absolute;
+    top: 12px;
+    left: 14px;
+    background: none;
+    border: none;
+    color: rgba(232,217,176,0.3);
+    font-size: 1.4rem;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+  .btn-close-modal:hover { color: var(--moon); }
+
+  footer {
+    text-align: center;
+    padding: 30px 0 20px;
+    color: rgba(232,217,176,0.2);
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <span class="moon-icon">🌕</span>
+    <h1>LOUGARO</h1>
+    <p class="subtitle">لعبة الذئاب — الجزائر</p>
+  </header>
+
+  <div class="divider"><span>🐺</span></div>
+
+  <!-- Add Players -->
+  <div class="panel">
+    <div class="panel-title">🧑‍🤝‍🧑 إضافة لاعب</div>
+    <div class="add-row">
+      <input type="text" id="playerInput" placeholder="اكتب اسم اللاعب..." maxlength="24" />
+      <button class="btn btn-gold" onclick="addPlayer()">➕ أضف</button>
+    </div>
+  </div>
+
+  <!-- Players List -->
+  <div class="panel">
+    <div class="panel-title-row">
+      <div class="panel-title" style="margin-bottom:0">👥 اللاعبون</div>
+      <span class="count-badge" id="countBadge">0 لاعب</span>
+    </div>
+    <div id="playersGrid" class="players-grid">
+      <p class="empty-msg">لم يتم إضافة أي لاعب بعد...</p>
+    </div>
+  </div>
+
+  <!-- Roles Info -->
+  <div class="panel">
+    <div class="panel-title">🎭 الأدوار</div>
+    <div class="roles-grid">
+      <div class="role-badge role-sv">
+        <span class="icon">🛡️</span>
+        <span class="name">SV</span>
+        <span class="desc">يحمي لاعباً كل ليلة</span>
+      </div>
+      <div class="role-badge role-shawafa">
+        <span class="icon">🔮</span>
+        <span class="name">شوافة</span>
+        <span class="desc">ترى هوية أي لاعب</span>
+      </div>
+      <div class="role-badge role-sahara">
+        <span class="icon">🧪</span>
+        <span class="name">سحارة</span>
+        <span class="desc">تملك جرعتي حياة وموت</span>
+      </div>
+      <div class="role-badge role-manific">
+        <span class="icon">👑</span>
+        <span class="name">مانيفيك</span>
+        <span class="desc">ينجو من التصويت مرة</span>
+      </div>
+      <div class="role-badge role-sayad">
+        <span class="icon">🏹</span>
+        <span class="name">صياد</span>
+        <span class="desc">يقتل معه عند موته</span>
+      </div>
+      <div class="role-badge role-wolf">
+        <span class="icon">🐺</span>
+        <span class="name">ذئب</span>
+        <span class="desc">يأكل قروي كل ليلة</span>
+      </div>
+      <div class="role-badge role-bwolf">
+        <span class="icon">🖤</span>
+        <span class="name">ذئب أسود</span>
+        <span class="desc">يفسد دواء السحارة</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Start Game -->
+  <div class="panel">
+    <div class="panel-title">🎮 توزيع الأدوار</div>
+    <p style="color:rgba(232,217,176,0.5);font-size:0.9rem;margin-bottom:4px">
+      سيتم التوزيع بشكل عشوائي. كل لاعب يضغط على الزر بنفسه ليرى دوره في سرية.
+    </p>
+    <button class="btn btn-wolf big" onclick="startGame()">🌕 ابدأ اللعبة وزّع الأدوار</button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay hidden" id="modal">
+  <div class="modal" id="modalContent">
+    <button class="btn-close-modal" onclick="closeModal()">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<footer>🐺 لوغارو — لعب الليل تبدأ</footer>
+
+<script>
+let players = [];
+let assignedRoles = {};
+let revealQueue = [];
+let currentRevealIndex = 0;
+let revealMode = false; // waiting for tap to show role
+
+const ROLES = [
+  { id: 'wolf',    name: 'ذئب',       icon: '🐺', desc: 'اقتل قروياً كل ليلة مع الذئاب الأخرى', color: '#e05555' },
+  { id: 'bwolf',   name: 'ذئب أسود',  icon: '🖤', desc: 'ذئب يستطيع تلوث جرعة السحارة', color: '#aaa' },
+  { id: 'sv',      name: 'SV',        icon: '🛡️', desc: 'احمِ لاعباً واحداً كل ليلة', color: '#7eb3ff' },
+  { id: 'shawafa', name: 'شوافة',     icon: '🔮', desc: 'اكشف هوية أي لاعب كل ليلة', color: '#c98aff' },
+  { id: 'sahara',  name: 'سحارة',     icon: '🧪', desc: 'استعملي جرعة الحياة أو الموت', color: '#6fdb8a' },
+  { id: 'manific', name: 'مانيفيك',   icon: '👑', desc: 'تنجو من التصويت مرة واحدة', color: '#c9a84c' },
+  { id: 'sayad',   name: 'صياد',      icon: '🏹', desc: 'عند موتك اختر لاعباً يموت معك', color: '#ffa55a' },
+  { id: 'villager',name: 'قروي',      icon: '🧑‍🌾', desc: 'قاتل بالتصويت لكشف الذئاب', color: '#ccc' },
+];
+
+function getRoleById(id) { return ROLES.find(r => r.id === id); }
+
+function addPlayer() {
+  const input = document.getElementById('playerInput');
+  const name = input.value.trim();
+  if (!name) return;
+  if (players.includes(name)) { alert('هذا الاسم موجود بالفعل!'); return; }
+  players.push(name);
+  input.value = '';
+  renderPlayers();
+  input.focus();
+}
+
+document.getElementById('playerInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addPlayer();
+});
+
+function removePlayer(name) {
+  players = players.filter(p => p !== name);
+  renderPlayers();
+}
+
+function renderPlayers() {
+  const grid = document.getElementById('playersGrid');
+  const badge = document.getElementById('countBadge');
+  badge.textContent = players.length + ' لاعب';
+
+  if (players.length === 0) {
+    grid.innerHTML = '<p class="empty-msg">لم يتم إضافة أي لاعب بعد...</p>';
+    return;
+  }
+  grid.innerHTML = players.map(p => `
+    <div class="player-card">
+      <span class="player-name">${p}</span>
+      <button class="delete-btn" onclick="removePlayer('${p.replace(/'/g,"\\'")}')">✕</button>
+    </div>
+  `).join('');
+}
+
+function distributeRoles(names) {
+  const n = names.length;
+  if (n < 4) return null;
+
+  // Determine wolves count
+  let wolves = Math.max(1, Math.floor(n / 4));
+  let hasBlackWolf = n >= 8;
+  if (hasBlackWolf) wolves--;
+
+  // Special roles (one each if enough players)
+  let specials = [];
+  if (n >= 4) specials.push('sv');
+  if (n >= 5) specials.push('shawafa');
+  if (n >= 6) specials.push('sahara');
+  if (n >= 7) specials.push('manific');
+  if (n >= 9) specials.push('sayad');
+
+  let rolePool = [];
+  for (let i = 0; i < wolves; i++) rolePool.push('wolf');
+  if (hasBlackWolf) rolePool.push('bwolf');
+  rolePool.push(...specials);
+
+  while (rolePool.length < n) rolePool.push('villager');
+  rolePool = rolePool.slice(0, n);
+
+  // Shuffle
+  for (let i = rolePool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rolePool[i], rolePool[j]] = [rolePool[j], rolePool[i]];
+  }
+
+  const result = {};
+  names.forEach((name, i) => result[name] = rolePool[i]);
+  return result;
+}
+
+function startGame() {
+  if (players.length < 4) {
+    showError('يجب أن يكون عدد اللاعبين 4 على الأقل!');
+    return;
+  }
+  assignedRoles = distributeRoles(players);
+  revealQueue = [...players];
+  currentRevealIndex = 0;
+  showNextPlayerPrompt();
+}
+
+function showNextPlayerPrompt() {
+  if (currentRevealIndex >= revealQueue.length) {
+    showDone();
+    return;
+  }
+  const player = revealQueue[currentRevealIndex];
+  const modal = document.getElementById('modal');
+  const body = document.getElementById('modalBody');
+  modal.classList.remove('hidden');
+
+  body.innerHTML = `
+    <div class="modal-step">
+      <p class="reveal-progress">اللاعب ${currentRevealIndex + 1} من ${revealQueue.length}</p>
+      <p class="modal-player-name">${player}</p>
+      <p class="modal-instruction">اضغط على الزر لرؤية دورك بشكل سري 🤫</p>
+      <button class="btn btn-wolf big" onclick="revealRole()">🌕 اكشف دوري</button>
+    </div>
+  `;
+}
+
+function revealRole() {
+  const player = revealQueue[currentRevealIndex];
+  const roleId = assignedRoles[player];
+  const role = getRoleById(roleId);
+  const body = document.getElementById('modalBody');
+
+  body.innerHTML = `
+    <div class="modal-step">
+      <p class="reveal-progress">اللاعب ${currentRevealIndex + 1} من ${revealQueue.length}</p>
+      <p class="modal-player-name">${player}</p>
+      <span class="role-reveal-icon" style="color:${role.color}">${role.icon}</span>
+      <p class="role-reveal-name" style="color:${role.color}">${role.name}</p>
+      <p class="role-reveal-desc">${role.desc}</p>
+      <button class="btn btn-wolf big" onclick="nextPlayer()">
+        ${currentRevealIndex + 1 < revealQueue.length ? 'التالي ➡️' : '✅ انتهى الكشف'}
+      </button>
+    </div>
+  `;
+}
+
+function nextPlayer() {
+  currentRevealIndex++;
+  if (currentRevealIndex >= revealQueue.length) {
+    showDone();
+  } else {
+    // Show waiting screen so previous player closes it
+    const body = document.getElementById('modalBody');
+    body.innerHTML = `
+      <div class="modal-step">
+        <div class="waiting-cover" onclick="showNextPlayerPrompt()">
+          <span class="tap-hint">🙈</span>
+          <p>ناوِل الهاتف للاعب التالي</p>
+          <p style="margin-top:8px;font-size:0.8rem;opacity:0.5">اضغط هنا للمتابعة</p>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function showDone() {
+  const body = document.getElementById('modalBody');
+  body.innerHTML = `
+    <div class="modal-step">
+      <span style="font-size:3rem;display:block;margin-bottom:14px">🌕</span>
+      <p style="font-size:1.4rem;font-weight:700;color:var(--gold);margin-bottom:8px">اكتمل التوزيع!</p>
+      <p style="color:rgba(232,217,176,0.5);margin-bottom:24px">الجميع يعرف دوره، لتبدأ اللعبة الآن.</p>
+      <button class="btn btn-gold" style="width:100%;padding:14px" onclick="closeModal()">ابدأ اللعبة 🐺</button>
+    </div>
+  `;
+}
+
+function showError(msg) {
+  const modal = document.getElementById('modal');
+  const body = document.getElementById('modalBody');
+  modal.classList.remove('hidden');
+  body.innerHTML = `
+    <div class="modal-step">
+      <span style="font-size:2.5rem;display:block;margin-bottom:12px">⚠️</span>
+      <p style="font-size:1.1rem;color:#e05555;margin-bottom:20px">${msg}</p>
+      <button class="btn btn-gold" style="width:100%;padding:12px" onclick="closeModal()">حسناً</button>
+    </div>
+  `;
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.add('hidden');
+}
+</script>
+</body>
+</html>
